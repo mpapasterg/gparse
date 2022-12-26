@@ -1893,8 +1893,8 @@ describe("Examples check", () => {
                     data: initial,
                 }, [
                     {
-                        result: ["2"],
-                        data: new gparse.StaticSemantics('', 2),
+                        result: ["2", "*"],
+                        error: eof,
                     },
                 ]],
                 [{
@@ -1920,8 +1920,8 @@ describe("Examples check", () => {
                     data: initial,
                 }, [
                     {
-                        result: ["3"],
-                        data: new gparse.StaticSemantics('', 3),
+                        result: ["3", "+"],
+                        error: eof,
                     },
                 ]],
                 [{
@@ -2013,6 +2013,15 @@ describe("Examples check", () => {
                         result: ["1", "+", "2", "-", "3", "+", "5", "*", "4", "/", "5"],
                         data: new gparse.StaticSemantics('', 4),
                     }
+                ]],
+                [{
+                    target: "1+2 3",
+                    data: initial,
+                }, [
+                    {
+                        result: ["1", "+", "2"],
+                        data: new gparse.StaticSemantics('', 3),
+                    },
                 ]],
             ],
         );

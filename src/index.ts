@@ -765,7 +765,7 @@ export class SymbolParser<D extends Identifiable, E extends Identifiable> {
      *
      * It basically *promotes* a {@link TokenParser} to a {@link SymbolParser} so that the former can be used in the
      * more advanced context of generalised grammars, when the capabilities of {@link TokenParser} are not sufficient.
-     * 
+     *
      * @param parser    - The {@link TokenParser} to be promoted.
      * @returns A new {@link SymbolParser} that will execute `parser`.
      */
@@ -839,17 +839,11 @@ export class SymbolParser<D extends Identifiable, E extends Identifiable> {
         for (let result of this.generate(target, data, index)) {
             results.push(result);
         }
-        // If at least one correct result exist, return it and no errors
-        // If no correct result exists, return the last error produced (best effort)
-        const nonErrorResults: ParseState<D, E>[] = results.filter((state: ParseState<D, E>) => !state.isError);
-        if (nonErrorResults.length > 0) {
-            // Greedy recognition: The elements with the largest index are returned
-            nonErrorResults.sort((a: ParseState<D, E>, b: ParseState<D, E>) => a.index - b.index);
-            const maxIndex = nonErrorResults[nonErrorResults.length - 1].index;
-            return nonErrorResults.filter((state: ParseState<D, E>) => state.index >= maxIndex);
-        } else {
-            return results.filter((state: ParseState<D, E>) => state.isError);
-        }
+        results.sort((a: ParseState<D, E>, b: ParseState<D, E>) => a.index - b.index);
+        const maxIndex = results[results.length - 1].index;
+        const maxResults = results.filter((state: ParseState<D, E>) => state.index >= maxIndex)
+        const nonErrorResults: ParseState<D, E>[] = maxResults.filter((state: ParseState<D, E>) => !state.isError);
+        return (nonErrorResults.length > 0) ? nonErrorResults : maxResults;
     }
 
     /**
@@ -1214,17 +1208,17 @@ export function error<D extends Identifiable, E extends Identifiable>(
 
 /**
  * Defines a {@link TokenParser} that will execute `parser` and pass it's result to `assertion`.
- * 
+ *
  * - If `parser` returns with an error, the error is propagated without executing the `assertion`
  * - If `assertion` evaluates to some {@link Identifiable} object, that object will be returned as the error of the assertion.
  * - If `assertion` evaluates to ```null```, then the assertion is considered successful and the result of `parser` is propagated.
- * 
+ *
  * It can be used to attach assertion operations in a `parser` result and determine if a token satisfies
  * specific criteria at that lexical scope.
- * 
+ *
  * @param parser    - The parser to which `assertion`s are attached.
  * @param assertion - The function which will either return a new error if the assertion is falsy, or ```null``` if the assertion is truthy.
- * @returns A new {@link TokenParser} that will execute `parser` and attach assertion operations defined by `assertion`. 
+ * @returns A new {@link TokenParser} that will execute `parser` and attach assertion operations defined by `assertion`.
  */
 export function assert<D extends Identifiable, E extends Identifiable>(
     parser: TokenParser<D, E>,
@@ -1449,7 +1443,7 @@ export function chain<D extends Identifiable, E extends Identifiable>(
  * Defines a {@link TokenParser} or {@link SymbolParser} that will {@link chain} parsers yielded by `generator`.
  * Each {@link TokenParser} or {@link SymbolParser} yielded by `generator` will be chained to the previous one.
  * An `initial` parser needs to be provided as the first one in the chain.
- * 
+ *
  * It can be used to construct *parse chains* in an imperative way, applying {@link chain} to any yielded
  * parsers. It's purpose is for convenience of writing parsers.
  *
@@ -1521,6 +1515,6 @@ export function alternatives<D extends Identifiable, E extends Identifiable>(
  *
  * It can be used to construct *optional* symbols or resolve ambiguities.
  */
-export const empty: SymbolParser<any, any> = new SymbolParser<any, any>(function (state: ParseState<any, any>, continuation: Continuation<any ,any>, parseStack: ParseStack<any, any>): void {
+export const empty: SymbolParser<any, any> = new SymbolParser<any, any>(function (state: ParseState<any, any>, continuation: Continuation<any, any>, parseStack: ParseStack<any, any>): void {
     continuation(state);
 });
