@@ -1,0 +1,28 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "entryPoints": [
+        "./src/index.ts",
+    ],
+    "out": "docs",
+    "excludeInternal": false,
+    "excludePrivate": false,
+    "commentStyle": "jsdoc",
+    "theme": "default",
+    "lightHighlightTheme": "light-plus",
+    "darkHighlightTheme": "dark-plus",
+    "markedOptions": {
+        "gfm": true,
+    },
+    "sidebarLinks": {},
+    "name": "gparse",
+    "includeVersion": true,
+    "readme": "./introduction.md",
+    "htmlLang": "en",
+    "hideGenerator": true,
+    "searchInComments": true,
+    "sort": [
+        "kind",
+        "instance-first",
+        "alphabetical"
+    ]
+}
