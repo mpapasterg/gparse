@@ -1,7 +1,7 @@
 {
   "name": "gparse",
   "version": "0.1.0",
-  "description": "A Generalised Parsing Parser Combinator library that enables the creation of efficient and reliable parsers for any possible Context Free Grammar (CFG).",
+  "description": "A Generalised Parser Combinator library in Typescript that enables the creation of efficient and reliable parsers for any possible Context Free Grammar (CFG).",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
