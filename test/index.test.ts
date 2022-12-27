@@ -1155,6 +1155,7 @@ function runSymbol<D extends gparse.Identifiable, E extends gparse.Identifiable>
     const results: gparse.ParseState<D, E>[][] = [];
     for (let i = 0; i < cases.length; i++) {
         results[i] = parser.run(cases[i][0].target, cases[i][0].data, cases[i][0].index);
+        expect(results[i].length).toStrictEqual(cases[i][1].length);
         for (let j = 0; j < results[i].length; j++) {
             const result = results[i][j];
             if (result.isError) {
