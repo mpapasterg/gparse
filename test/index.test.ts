@@ -1486,9 +1486,10 @@ describe("Parser features check", () => {
     const match = new gparse.StaticSemantics("match", null);
     const no = new gparse.NoSemantics();
 
-    const a = gparse.SymbolParser.toSymbol(gparse.str("a", (_) => eof, (_) => match));
+    const a: gparse.TokenParser<any, any> = gparse.str("a", (_) => eof, (_) => match);
+    const b: gparse.TokenParser<any, any> = gparse.str("b", (_) => eof, (_) => match);
     const OPT = gparse.alternatives([
-        a,
+        gparse.SymbolParser.toSymbol(a),
         gparse.empty,
     ]);
 
@@ -1540,17 +1541,17 @@ describe("Parser features check", () => {
         ]],
     ];
     const L: gparse.SymbolParser<any, any> = gparse.SymbolParser.lazy(() => gparse.alternatives([
-        gparse.chain([L, a]),
-        a,
+        gparse.chain([L, gparse.SymbolParser.toSymbol(a)]),
+        gparse.SymbolParser.toSymbol(a),
     ]));
     const R: gparse.SymbolParser<any, any> = gparse.SymbolParser.lazy(() => gparse.alternatives([
-        gparse.chain([a, R]),
-        a,
+        gparse.chain([gparse.SymbolParser.toSymbol(a), R]),
+        gparse.SymbolParser.toSymbol(a),
     ]));
 
     const E: gparse.SymbolParser<any, any> = gparse.SymbolParser.lazy(() => gparse.alternatives([
-        gparse.chain([gparse.empty, L, a]),
-        a,
+        gparse.chain([gparse.empty, L, gparse.SymbolParser.toSymbol(a)]),
+        gparse.SymbolParser.toSymbol(a),
     ]));
 
     const A = gparse.map(gparse.SymbolParser.toSymbol(gparse.str("a", (_) => eof, (_) => match)), (state) => ({ identity: state.data.identity + 'a' }), (state) => state.error);
@@ -1797,6 +1798,172 @@ describe("Parser features check", () => {
                 ]],
             ]
         )
+    });
+    it("Test error recovery (TokenParser)", () => {
+        const recovery = new gparse.StaticSemantics('RECOVERY', null);
+        const error = new gparse.StaticSemantics('ERROR', null);
+        const withoutRecovery = gparse.choice([
+            a,
+            gparse.chain([b, gparse.error((state) => state.isError ? state.error : error)]),
+        ], (_) => match);
+        const withRecovery = gparse.chain([withoutRecovery, gparse.recovery((state) => state.isError ? recovery : state.data)]);
+        runToken(
+            withoutRecovery,
+            [
+                [{
+                    target: "",
+                    data: no,
+                }, {
+                    result: [],
+                    error: match,
+                }],
+                [{
+                    target: "c",
+                    data: no,
+                }, {
+                    result: [],
+                    error: match,
+                }],
+                [{
+                    target: "a",
+                    data: no,
+                }, {
+                    result: ["a"],
+                    data: no,
+                }],
+                [{
+                    target: "b",
+                    data: no,
+                }, {
+                    result: [],
+                    error: match,
+                }],
+            ],
+        );
+        runToken(
+            withRecovery,
+            [
+                [{
+                    target: "",
+                    data: no,
+                }, {
+                    result: [],
+                    data: recovery,
+                }],
+                [{
+                    target: "c",
+                    data: no,
+                }, {
+                    result: [],
+                    data: recovery,
+                }],
+                [{
+                    target: "a",
+                    data: no,
+                }, {
+                    result: ["a"],
+                    data: no,
+                }],
+                [{
+                    target: "b",
+                    data: no,
+                }, {
+                    result: [],
+                    data: recovery,
+                }],
+            ],
+        );
+    });
+    it("Test error recovery (SymbolParser)", () => {
+        const recovery = new gparse.StaticSemantics('RECOVERY', null);
+        const error = new gparse.StaticSemantics('ERROR', null);
+        const withoutRecovery = gparse.alternatives([
+            gparse.SymbolParser.toSymbol(a),
+            gparse.chain([gparse.SymbolParser.toSymbol(b), gparse.SymbolParser.toSymbol(gparse.error((state) => state.isError ? state.error : error))]),
+        ]);
+        const withRecovery = gparse.chain([withoutRecovery, gparse.SymbolParser.toSymbol(gparse.recovery((state) => state.isError ? recovery : state.data))]);
+        runSymbol(
+            withoutRecovery,
+            [
+                [{
+                    target: "",
+                    data: no,
+                }, [
+                    {
+                        result: [],
+                        error: eof,
+                    }
+                ]],
+                [{
+                    target: "c",
+                    data: no,
+                }, [
+                    {
+                        result: [],
+                        error: match,
+                    }
+                ]],
+                [{
+                    target: "a",
+                    data: no,
+                }, [
+                    {
+                        result: ["a"],
+                        data: no,
+                    }
+                ]],
+                [{
+                    target: "b",
+                    data: no,
+                }, [
+                    {
+                        result: ["b"],
+                        error: error,
+                    }
+                ]],
+            ],
+        );
+        runSymbol(
+            withRecovery,
+            [
+                [{
+                    target: "",
+                    data: no,
+                }, [
+                    {
+                        result: [],
+                        data: recovery,
+                    }
+                ]],
+                [{
+                    target: "c",
+                    data: no,
+                }, [
+                    {
+                        result: [],
+                        data: recovery,
+                    }
+                ]],
+                [{
+                    target: "a",
+                    data: no,
+                }, [
+                    {
+                        result: ["a"],
+                        data: no,
+                    }
+                ]],
+                [{
+                    target: "b",
+                    data: no,
+                }, [
+                    {
+                        result: ["b"],
+                        data: recovery,
+                    }
+                ]],
+            ],
+        );
     });
 });
 
