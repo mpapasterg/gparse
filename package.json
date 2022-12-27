@@ -1,6 +1,6 @@
 {
   "name": "gparse",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A Generalised Parser Combinator library in Typescript that enables the creation of efficient and reliable parsers for any possible Context Free Grammar (CFG).",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,8 +13,7 @@
   "author": "mpapasterg <itsmpapasterg@gmail.com>",
   "license": "MIT",
   "type": "module",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/jest": "^29.2.3",
     "@types/node": "^18.11.10",
