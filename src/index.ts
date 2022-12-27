@@ -1184,25 +1184,58 @@ export function sideEffect<D extends Identifiable, E extends Identifiable>(
 }
 
 /**
- * Defines a {@link TokenParser} that will always fail with the semantic value returned by `f`.
+ * Defines a {@link TokenParser} that, in case of a valid result passed to it, will fail with the
+ * provided `error` semantic value.
  *
  * If it is passed a {@link ParseError}, it will propagate it onwards with no change.
- * If it is passed a {@link ParseResult}, it will update it to a {@link ParseError} and parsing will
- * stop at that point. The error will then be propagated onwards by chained parsers (if existing).
+ * If it is passed a {@link ParseResult}, it will return the provided `error` {@link ParseError} and
+ * parsing will stop at that point.
  *
- * It enables **error rulse** to be defined, that will define a part of the grammar that should always
+ * It enables **error rules** to be defined, that will define a part of the grammar that should always
  * fail when detected.
  *
- * @param f - A callback that will take the {@link ParseState} passed and return an error semantic value.
- * @returns A new {@link TokenParser} whose execution will always fail with the specified properties.
+ * @param error - An error semantic value to be returned in case of a valid result.
+ * @returns A new {@link TokenParser} whose execution will fail with an error or `error` in case a valid result is passed to it.
  *
  * @group Parsers
  */
 export function error<D extends Identifiable, E extends Identifiable>(
-    f: (state: ParseState<D, E>) => E,
+    error: E,
 ): TokenParser<D, E> {
     return new TokenParser<D, E>(function (state: ParseState<D, E>): ParseState<D, E> {
-        return updateParseError(state, f(state));
+        if (state.isError) {
+            return state;
+        }
+        return updateParseError(state, error);
+    });
+}
+
+/**
+ * Defines a {@link TokenParser} that, in case of an error passed to it, will succeed with the
+ * provided `data` semantic value.
+ *
+ * If it is passed a {@link ParseResult}, it will propagate it onwards with no change.
+ * If it is passed a {@link ParseError}, it will return the provided `data` semantic value and
+ * parsing will continue from that point onwards.
+ *
+ * It enables **error recovery** capabilities and defines a **synchronisation point** at the position where it gets
+ * placed.
+ *
+ * @param data - A semantic value to be returned in case of an error result.
+ * @returns A new {@link TokenParser} whose execution will succeed with a valid result or `data` in case of an error passed to it.
+ *
+ * @see {@link error}
+ *
+ * @group Parsers
+ */
+export function recovery<D extends Identifiable, E extends Identifiable>(
+    data: D,
+): TokenParser<D, E> {
+    return new TokenParser<D, E>(function (state: ParseState<D, E>): ParseState<D, E> {
+        if (!state.isError) {
+            return state;
+        }
+        return updateParseResult(state, state.index, data);
     });
 }
 
@@ -1240,31 +1273,6 @@ export function assert<D extends Identifiable, E extends Identifiable>(
         } else {
             return nextState;
         }
-    });
-}
-
-/**
- * Defines a {@link TokenParser} that will always succeed with the semantic value produced by `f`.
- *
- * If it is passed a {@link ParseResult}, it will propagate it onwards with no change.
- * If it is passed a {@link ParseError}, it will update it to a {@link ParseResult} and continue parsing
- * from that point onwards.
- *
- * It enables **error recovery** capabilities and defines a **synchronisation point** at the position where it gets
- * placed.
- *
- * @param f - A callback that will take the {@link ParseState} passed and return a semantic value.
- * @returns A new {@link TokenParser} whose execution will always succeed with the specified properties.
- *
- * @see {@link error}
- *
- * @group Parsers
- */
-export function recovery<D extends Identifiable, E extends Identifiable>(
-    f: (state: ParseState<D, E>) => D,
-): TokenParser<D, E> {
-    return new TokenParser<D, E>(function (state: ParseState<D, E>): ParseState<D, E> {
-        return updateParseResult(state, state.index, f(state));
     });
 }
 

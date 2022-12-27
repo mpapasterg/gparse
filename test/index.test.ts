@@ -823,42 +823,44 @@ describe("TokenParser parsers check", () => {
         expect(state).toStrictEqual(result);
     });
     it("Test error", () => {
-        const err = gparse.error((_) => eof);
-        const result = err.run("", no)[0];
-        expect(result.isError).toBeTruthy();
-        expect((result as gparse.ParseError<gparse.StaticSemantics>).error).toStrictEqual(eof);
-    });
-    it("Error should return error in a chain", () => {
         runToken(
-            gparse.chain([a, gparse.error((_) => eof), b]),
+            gparse.chain([a, gparse.error(match), b]),
             [
+                [{
+                    target: "",
+                    data: no,
+                }, {
+                    result: [],
+                    error: eof,
+                }],
                 [{
                     target: "a",
                     data: no,
                 }, {
                     result: ["a"],
-                    error: eof,
+                    error: match,
                 }],
                 [{
                     target: "ab",
                     data: no,
                 }, {
                     result: ["a"],
-                    error: eof,
+                    error: match,
                 }],
             ]
         );
     });
     it("Test recovery", () => {
-        const rec = gparse.recovery((_) => no);
-        const result = rec.run("", eof)[0];
-        expect(result.isError).toBeFalsy();
-        expect((result as gparse.ParseResult<gparse.StaticSemantics>).data).toStrictEqual(no);
-    });
-    it("Recovery should continue parsing with result in a chain", () => {
         runToken(
-            gparse.chain([a, gparse.recovery((_) => match), b]),
+            gparse.chain([a, gparse.recovery(match), b]),
             [
+                [{
+                    target: "",
+                    data: no,
+                }, {
+                    result: [],
+                    error: eof,
+                }],
                 [{
                     target: "a",
                     data: no,
@@ -871,14 +873,14 @@ describe("TokenParser parsers check", () => {
                     data: no,
                 }, {
                     result: ["a", "b"],
-                    data: match,
+                    data: no,
                 }],
             ]
         );
     });
     it("Test error recovery", () => {
-        const err = gparse.error((_) => eof);
-        const rec = gparse.recovery((_) => no);
+        const err: gparse.TokenParser<any, any> = gparse.error(eof);
+        const rec: gparse.TokenParser<any, any> = gparse.recovery(no);
         runToken(
             gparse.chain([err, rec]),
             [
@@ -1804,9 +1806,9 @@ describe("Parser features check", () => {
         const error = new gparse.StaticSemantics('ERROR', null);
         const withoutRecovery = gparse.alternatives([
             gparse.SymbolParser.toSymbol(a),
-            gparse.chain([gparse.SymbolParser.toSymbol(b), gparse.SymbolParser.toSymbol(gparse.error((state) => state.isError ? state.error : error))]),
+            gparse.chain([gparse.SymbolParser.toSymbol(b), gparse.SymbolParser.toSymbol(gparse.error(error))]),
         ]);
-        const withRecovery = gparse.chain([withoutRecovery, gparse.SymbolParser.toSymbol(gparse.recovery((state) => state.isError ? recovery : state.data))]);
+        const withRecovery = gparse.chain([withoutRecovery, gparse.SymbolParser.toSymbol(gparse.recovery(recovery))]);
         runSymbol(
             withoutRecovery,
             [
