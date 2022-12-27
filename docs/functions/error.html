@@ -17,16 +17,17 @@
 <h1>Function error</h1></div>
 <section class="tsd-panel">
 <ul class="tsd-signatures tsd-kind-function">
-<li class="tsd-signature tsd-anchor-link" id="error">error<span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">D</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>f<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>state<span class="tsd-signature-symbol">: </span><a href="../types/ParseState.html" class="tsd-signature-type" data-tsd-kind="Type alias">ParseState</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">D</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../classes/TokenParser.html" class="tsd-signature-type" data-tsd-kind="Class">TokenParser</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">D</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span><span class="tsd-signature-symbol">&gt;</span><a href="#error" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="error">error<span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">D</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>error<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../classes/TokenParser.html" class="tsd-signature-type" data-tsd-kind="Class">TokenParser</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">D</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span><span class="tsd-signature-symbol">&gt;</span><a href="#error" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Defines a <a href="../classes/TokenParser.html">TokenParser</a> that will always fail with the semantic value returned by <code>f</code>.</p>
+<div class="tsd-comment tsd-typography"><p>Defines a <a href="../classes/TokenParser.html">TokenParser</a> that, in case of a valid result passed to it, will fail with the
+provided <code>error</code> semantic value.</p>
 <p>If it is passed a <a href="../classes/ParseError.html">ParseError</a>, it will propagate it onwards with no change.
-If it is passed a <a href="../classes/ParseResult.html">ParseResult</a>, it will update it to a <a href="../classes/ParseError.html">ParseError</a> and parsing will
-stop at that point. The error will then be propagated onwards by chained parsers (if existing).</p>
-<p>It enables <strong>error rulse</strong> to be defined, that will define a part of the grammar that should always
+If it is passed a <a href="../classes/ParseResult.html">ParseResult</a>, it will return the provided <code>error</code> <a href="../classes/ParseError.html">ParseError</a> and
+parsing will stop at that point.</p>
+<p>It enables <strong>error rules</strong> to be defined, that will define a part of the grammar that should always
 fail when detected.</p>
 
-<h3>Returns</h3><p>A new <a href="../classes/TokenParser.html">TokenParser</a> whose execution will always fail with the specified properties.</p>
+<h3>Returns</h3><p>A new <a href="../classes/TokenParser.html">TokenParser</a> whose execution will fail with an error or <code>error</code> in case a valid result is passed to it.</p>
 </div>
 <section class="tsd-panel tsd-type-parameters">
 <h4>Type Parameters</h4>
@@ -39,23 +40,12 @@ fail when detected.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>f: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>state<span class="tsd-signature-symbol">: </span><a href="../types/ParseState.html" class="tsd-signature-type" data-tsd-kind="Type alias">ParseState</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">D</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span><span class="tsd-signature-symbol">)</span></h5>
-<div class="tsd-comment tsd-typography"><p>A callback that will take the <a href="../types/ParseState.html">ParseState</a> passed and return an error semantic value.</p>
-</div>
-<ul class="tsd-parameters">
-<li class="tsd-parameter-signature">
-<ul class="tsd-signatures tsd-kind-type-literal">
-<li class="tsd-signature"><span class="tsd-signature-symbol">(</span>state<span class="tsd-signature-symbol">: </span><a href="../types/ParseState.html" class="tsd-signature-type" data-tsd-kind="Type alias">ParseState</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">D</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span></li>
-<li class="tsd-description">
-<div class="tsd-parameters">
-<h4 class="tsd-parameters-title">Parameters</h4>
-<ul class="tsd-parameter-list">
-<li>
-<h5>state: <a href="../types/ParseState.html" class="tsd-signature-type" data-tsd-kind="Type alias">ParseState</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">D</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span></h4></li></ul></li></ul></li></ul></div>
+<h5>error: <span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span></h5>
+<div class="tsd-comment tsd-typography"><p>An error semantic value to be returned in case of a valid result.</p>
+</div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../classes/TokenParser.html" class="tsd-signature-type" data-tsd-kind="Class">TokenParser</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">D</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">E</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/mpapasterg/n3.js/blob/4795a83/src/index.ts#L1207">index.ts:1207</a></li></ul></aside></li></ul></section></div>
+<li>Defined in <a href="https://github.com/mpapasterg/n3.js/blob/e67e5ca/src/index.ts#L1202">index.ts:1202</a></li></ul></aside></li></ul></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
