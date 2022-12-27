@@ -1799,82 +1799,7 @@ describe("Parser features check", () => {
             ]
         )
     });
-    it("Test error recovery (TokenParser)", () => {
-        const recovery = new gparse.StaticSemantics('RECOVERY', null);
-        const error = new gparse.StaticSemantics('ERROR', null);
-        const withoutRecovery = gparse.choice([
-            a,
-            gparse.chain([b, gparse.error((state) => state.isError ? state.error : error)]),
-        ], (_) => match);
-        const withRecovery = gparse.chain([withoutRecovery, gparse.recovery((state) => state.isError ? recovery : state.data)]);
-        runToken(
-            withoutRecovery,
-            [
-                [{
-                    target: "",
-                    data: no,
-                }, {
-                    result: [],
-                    error: match,
-                }],
-                [{
-                    target: "c",
-                    data: no,
-                }, {
-                    result: [],
-                    error: match,
-                }],
-                [{
-                    target: "a",
-                    data: no,
-                }, {
-                    result: ["a"],
-                    data: no,
-                }],
-                [{
-                    target: "b",
-                    data: no,
-                }, {
-                    result: [],
-                    error: match,
-                }],
-            ],
-        );
-        runToken(
-            withRecovery,
-            [
-                [{
-                    target: "",
-                    data: no,
-                }, {
-                    result: [],
-                    data: recovery,
-                }],
-                [{
-                    target: "c",
-                    data: no,
-                }, {
-                    result: [],
-                    data: recovery,
-                }],
-                [{
-                    target: "a",
-                    data: no,
-                }, {
-                    result: ["a"],
-                    data: no,
-                }],
-                [{
-                    target: "b",
-                    data: no,
-                }, {
-                    result: [],
-                    data: recovery,
-                }],
-            ],
-        );
-    });
-    it("Test error recovery (SymbolParser)", () => {
+    it("Test error recovery", () => {
         const recovery = new gparse.StaticSemantics('RECOVERY', null);
         const error = new gparse.StaticSemantics('ERROR', null);
         const withoutRecovery = gparse.alternatives([
@@ -1965,28 +1890,31 @@ describe("Parser features check", () => {
             ],
         );
     });
-});
-
-describe("Examples check", () => {
-
-    const eof = new gparse.StaticSemantics("EOF", null);
-    const match = new gparse.StaticSemantics("match", null);
-    const initial = new gparse.StaticSemantics('', 0);
-
     it("Test calculator", () => {
+        const initial = new gparse.StaticSemantics('', 0);
+
         const number: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.map(gparse.regex(/^[0-9]+/, (_) => eof, () => match), (state) => new gparse.StaticSemantics('', +state.result[state.result.length - 1]), (state) => state.error));
+        const lparen: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.str("(", (_) => eof, (_) => match));
+        const rparen: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.str(")", (_) => eof, (_) => match));
         const addOp: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.str("+", (_) => eof, (_) => match));
         const minusOp: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.str("-", (_) => eof, (_) => match));
         const multiplyOp: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.str("*", (_) => eof, (_) => match));
         const divideOp: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.str("/", (_) => eof, (_) => match));
+
+        const primary: gparse.SymbolParser<any, any> = gparse.SymbolParser.lazy(() => gparse.alternatives([
+            number,
+            gparse.chain([lparen, expression, rparen], (data) => {
+                return new gparse.StaticSemantics('', data[2].value);
+            }),
+        ]));
         const term: gparse.SymbolParser<any, any> = gparse.SymbolParser.lazy(() => gparse.alternatives([
-            gparse.chain([term, multiplyOp, number], (data) => {
+            gparse.chain([term, multiplyOp, primary], (data) => {
                 return new gparse.StaticSemantics('', data[0].value * data[2].value);
             }),
-            gparse.chain([term, divideOp, number], (data) => {
+            gparse.chain([term, divideOp, primary], (data) => {
                 return new gparse.StaticSemantics('', data[0].value / data[2].value);
             }),
-            number,
+            primary,
         ]));
         const expression: gparse.SymbolParser<any, any> = gparse.SymbolParser.lazy(() => gparse.alternatives([
             gparse.chain([expression, addOp, term], (data) => {
@@ -2190,6 +2118,33 @@ describe("Examples check", () => {
                         data: new gparse.StaticSemantics('', 3),
                     },
                 ]],
+                [{
+                    target: "(1)",
+                    data: initial,
+                }, [
+                    {
+                        result: ["(", "1", ")"],
+                        data: new gparse.StaticSemantics('', 1),
+                    }
+                ]],
+                [{
+                    target: "((1+2)*3)",
+                    data: initial,
+                }, [
+                    {
+                        result: ["(", "(", "1", "+", "2", ")", "*", "3", ")"],
+                        data: new gparse.StaticSemantics('', 9),
+                    }
+                ]],
+                [{
+                    target: "(5+5)/(1*2)",
+                    data: initial,
+                }, [
+                    {
+                        result: ["(", "5", "+", "5", ")", "/", "(", "1", "*", "2", ")"],
+                        data: new gparse.StaticSemantics('', 5),
+                    }
+                ]]
             ],
         );
     });

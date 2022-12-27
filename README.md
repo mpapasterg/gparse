@@ -35,6 +35,8 @@ const match = new gparse.StaticSemantics("match", null);
 // Token definitions
 
 const number: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.map(gparse.regex(/^[0-9]+/, (_) => eof, () => match), (state) => new gparse.StaticSemantics('', +state.result[state.result.length - 1]), (state) => state.error));
+const lparen: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.str("(", (_) => eof, (_) => match));
+const rparen: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.str(")", (_) => eof, (_) => match));
 const addOp: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.str("+", (_) => eof, (_) => match));
 const minusOp: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.str("-", (_) => eof, (_) => match));
 const multiplyOp: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.str("*", (_) => eof, (_) => match));
@@ -42,14 +44,20 @@ const divideOp: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gpa
 
 // Symbols
 
+const primary: gparse.SymbolParser<any, any> = gparse.SymbolParser.lazy(() => gparse.alternatives([
+    number,
+    gparse.chain([lparen, expression, rparen], (data) => {
+        return new gparse.StaticSemantics('', data[2].value);
+    }),
+]));
 const term: gparse.SymbolParser<any, any> = gparse.SymbolParser.lazy(() => gparse.alternatives([
-    gparse.chain([term, multiplyOp, number], (data) => {
+    gparse.chain([term, multiplyOp, primary], (data) => {
         return new gparse.StaticSemantics('', data[0].value * data[2].value);
     }),
-    gparse.chain([term, divideOp, number], (data) => {
+    gparse.chain([term, divideOp, primary], (data) => {
         return new gparse.StaticSemantics('', data[0].value / data[2].value);
     }),
-    number,
+    primary,
 ]));
 const expression: gparse.SymbolParser<any, any> = gparse.SymbolParser.lazy(() => gparse.alternatives([
     gparse.chain([expression, addOp, term], (data) => {
