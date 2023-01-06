@@ -30,26 +30,7 @@ describe("Semantics classes check", () => {
     });
     it("NoSemantics have same identities with SameSemantics", () => {
         const a = new gparse.NoSemantics();
-        const b = new gparse.SameSemantics({ a: 1 });
-        expect(a.identity).toStrictEqual(b.identity);
-    });
-    it("SameSemantics should have same identity on different data.", () => {
-        const a = new gparse.SameSemantics({
-            a: 1,
-        });
-        const b = new gparse.SameSemantics({
-            a: 2,
-            b: 1,
-        });
-        expect(a.identity).toStrictEqual(b.identity);
-    });
-    it("SameSemantics should have same identity on same data.", () => {
-        const a = new gparse.SameSemantics({
-            a: 1,
-        });
-        const b = new gparse.SameSemantics({
-            a: 1,
-        });
+        const b = new gparse.StaticSemantics('', { a: 1 });
         expect(a.identity).toStrictEqual(b.identity);
     });
     it("StaticSemantics should have same identity on different data.", () => {
@@ -112,8 +93,8 @@ describe("Semantics classes check", () => {
 describe("ParseState identity check", () => {
 
     it("Should have same identities on same target, index and data identity empty string", () => {
-        const a = new gparse.ParseResult("ASDF", 0, [""], new gparse.SameSemantics({ a: 1 }));
-        const b = new gparse.ParseResult("ASDF", 0, [""], new gparse.SameSemantics({ a: 2 }));
+        const a = new gparse.ParseResult("ASDF", 0, [""], new gparse.StaticSemantics('', { a: 1 }));
+        const b = new gparse.ParseResult("ASDF", 0, [""], new gparse.StaticSemantics('', { a: 2 }));
         expect(a.identity).toStrictEqual(b.identity);
     });
     it("Should have same identities on same target, index and data same", () => {
@@ -161,14 +142,14 @@ describe("ParseState identity check", () => {
 describe("ParseState promise check", () => {
 
     it("Promise ParseResult should return valid", async () => {
-        const a = new gparse.ParseResult("ASDF", 2, ["AS"], new gparse.SameSemantics({
+        const a = new gparse.ParseResult("ASDF", 2, ["AS"], new gparse.StaticSemantics('', {
             a: 1,
         }));
         const result = await a.toPromise();
         expect(result).toStrictEqual(a);
     });
     it("Promise ParseError should return valid", async () => {
-        const a = new gparse.ParseError("ASDF", 2, ["AS"], new gparse.SameSemantics({
+        const a = new gparse.ParseError("ASDF", 2, ["AS"], new gparse.StaticSemantics('', {
             a: 1,
         }));
         const result = await a.toPromise();

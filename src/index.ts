@@ -41,14 +41,12 @@
  *
  * It is suggested that you use one of the defined *semantics* types provided with the library including:
  * - {@link NoSemantics}: Defines no semantic data
- * - {@link SameSemantics}: Defines semantic data with the same identity
  * - {@link StaticSemantics}: Defines semantic data with a static identity
  * - {@link DynamicSemantics}: Defines semantic data with an identity that corresponds to the exact strucutre of those semantics.
  *
  * @see {@link ParseState}
  *
  * @see {@link NoSemantics}
- * @see {@link SameSemantics}
  * @see {@link StaticSemantics}
  * @see {@link DynamicSemantics}
  *
@@ -74,30 +72,6 @@ export class NoSemantics implements Identifiable {
 
     /** The {@link identity} property to implement {@link Identifiable}. Equals to *empty string* at all times. */
     public readonly identity: string = '';
-
-}
-
-/**
- * A type for semantic data that have the same {@link identity} value and a {@link value} property that
- * holds the semantic information.
- *
- * Semantic data of this type will all have the same value for the {@link identity} property. That value
- * will be initialised and never change thereafter. Thus, all instances of {@link SameSemantics} will
- * have the same {@link identity}.
- *
- * @see {@link Identifiable}
- *
- * @group Semantics
- */
-export class SameSemantics implements Identifiable {
-
-    /** The static identifier that is required to implement {@link Identifiable}. */
-    public readonly identity: string = '';
-
-    constructor(
-        /** The semantic information to be stored. */
-        public value: unknown,
-    ) { }
 
 }
 
