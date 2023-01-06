@@ -945,7 +945,7 @@ describe("TokenParser parsers check", () => {
                     data: no,
                 }]
             ]
-        )
+        );
     });
     it("Test map", () => {
         const ok = new gparse.StaticSemantics("OK", null);
@@ -1075,7 +1075,7 @@ describe("TokenParser parsers check", () => {
                     data: match,
                 }],
             ]
-        )
+        );
     });
     it("Test contextual", () => {
         runToken(
@@ -1189,6 +1189,62 @@ describe("SymbolParser parsers check", () => {
         expect(gparse.empty.run("asdf", no)).toStrictEqual([
             new gparse.ParseResult("asdf", 0, [], no),
         ]);
+    });
+    it("Test assert", () => {
+        const zero = new gparse.StaticSemantics("0", null);
+        runSymbol(
+            gparse.assert(
+                gparse.SymbolParser.toSymbol(gparse.regex(/^[0-9]+/, (_) => eof, () => match)),
+                (state) => (state.isError || state.result[state.result.length - 1] === '0') ? zero : null,
+            ),
+            [
+                [{
+                    target: "",
+                    data: no,
+                }, [
+                    {
+                        result: [],
+                        error: eof,
+                    },
+                ]],
+                [{
+                    target: "asdf",
+                    data: no,
+                }, [
+                    {
+                        result: [],
+                        error: match,
+                    },
+                ]],
+                [{
+                    target: "123",
+                    data: no,
+                }, [
+                    {
+                        result: ["123"],
+                        data: no,
+                    },
+                ]],
+                [{
+                    target: "0",
+                    data: no,
+                }, [
+                    {
+                        result: ["0"],
+                        error: zero,
+                    },
+                ]],
+                [{
+                    target: "0123",
+                    data: no,
+                }, [
+                    {
+                        result: ["0123"],
+                        data: no,
+                    },
+                ]],
+            ]
+        );
     });
     it("Test map", () => {
         runSymbol(
@@ -1895,6 +1951,7 @@ describe("Parser features check", () => {
     });
     it("Test calculator", () => {
         const initial = new gparse.StaticSemantics('', 0);
+        const divideByZeroError = new gparse.StaticSemantics('', "DivideByZeroError");
 
         const number: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.map(gparse.regex(/^[0-9]+/, (_) => eof, () => match), (state) => new gparse.StaticSemantics('', +state.result[state.result.length - 1]), (state) => state.error));
         const lparen: gparse.SymbolParser<any, any> = gparse.SymbolParser.toSymbol(gparse.str("(", (_) => eof, (_) => match));
@@ -1914,7 +1971,13 @@ describe("Parser features check", () => {
             gparse.chain([term, multiplyOp, primary], (data) => {
                 return new gparse.StaticSemantics('', data[0].value * data[2].value);
             }),
-            gparse.chain([term, divideOp, primary], (data) => {
+            gparse.chain([term, divideOp, gparse.assert(primary, (state) => {
+                if (!state.isError && state.data.value === 0) {
+                    return divideByZeroError;
+                } else {
+                    return null;
+                }
+            })], (data) => {
                 return new gparse.StaticSemantics('', data[0].value / data[2].value);
             }),
             primary,
@@ -2091,7 +2154,7 @@ describe("Parser features check", () => {
                 }, [
                     {
                         result: ["3", "/", "0"],
-                        data: new gparse.StaticSemantics('', Infinity),
+                        error: divideByZeroError,
                     },
                 ]],
                 [{
@@ -2100,7 +2163,7 @@ describe("Parser features check", () => {
                 }, [
                     {
                         result: ["0", "/", "0"],
-                        data: new gparse.StaticSemantics('', NaN),
+                        error: divideByZeroError,
                     },
                 ]],
                 [{

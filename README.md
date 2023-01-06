@@ -31,6 +31,7 @@ import * as gparse from 'gparse';
 // Error definitions
 const eof = new gparse.StaticSemantics("EOF", null);
 const match = new gparse.StaticSemantics("match", null);
+const divideByZeroError = new gparse.StaticSemantics('', "DivideByZeroError");
 
 // Token definitions
 
@@ -54,7 +55,13 @@ const term: gparse.SymbolParser<any, any> = gparse.SymbolParser.lazy(() => gpars
     gparse.chain([term, multiplyOp, primary], (data) => {
         return new gparse.StaticSemantics('', data[0].value * data[2].value);
     }),
-    gparse.chain([term, divideOp, primary], (data) => {
+    gparse.chain([term, divideOp, gparse.assert(primary, (state) => {
+                if (!state.isError && state.data.value === 0) {
+                    return divideByZeroError;
+                } else {
+                    return null;
+                }
+            })], (data) => {
         return new gparse.StaticSemantics('', data[0].value / data[2].value);
     }),
     primary,

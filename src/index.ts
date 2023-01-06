@@ -1240,7 +1240,7 @@ export function recovery<D extends Identifiable, E extends Identifiable>(
 }
 
 /**
- * Defines a {@link TokenParser} that will execute `parser` and pass it's result to `assertion`.
+ * Defines a {@link TokenParser} or {@link SymbolParser} that will execute `parser` and pass it's result to `assertion`.
  *
  * - If `parser` returns with an error, the error is propagated without executing the `assertion`
  * - If `assertion` evaluates to some {@link Identifiable} object, that object will be returned as the error of the assertion.
@@ -1251,29 +1251,58 @@ export function recovery<D extends Identifiable, E extends Identifiable>(
  *
  * @param parser    - The parser to which `assertion`s are attached.
  * @param assertion - The function which will either return a new error if the assertion is falsy, or ```null``` if the assertion is truthy.
- * @returns A new {@link TokenParser} that will execute `parser` and attach assertion operations defined by `assertion`.
+ * @returns A new {@link TokenParser} or {@link SymbolParser} that will execute `parser` and attach assertion operations defined by `assertion`.
  */
 export function assert<D extends Identifiable, E extends Identifiable>(
     parser: TokenParser<D, E>,
     assertion: (state: ParseState<D, E>) => E | null,
-): TokenParser<D, E> {
-    return new TokenParser<D, E>(function (state: ParseState<D, E>): ParseState<D, E> {
-        if (state.isError) {
-            return state;
-        }
+): TokenParser<D, E>;
+export function assert<D extends Identifiable, E extends Identifiable>(
+    parser: SymbolParser<D, E>,
+    assertion: (state: ParseState<D, E>) => E | null,
+): SymbolParser<D, E>;
+export function assert<D extends Identifiable, E extends Identifiable>(
+    parser: TokenParser<D, E> | SymbolParser<D, E>,
+    assertion: (state: ParseState<D, E>) => E | null,
+): TokenParser<D, E> | SymbolParser<D, E> {
+    if (parser instanceof TokenParser<D, E>) {
+        return new TokenParser<D, E>(function (state: ParseState<D, E>): ParseState<D, E> {
+            if (state.isError) {
+                return state;
+            }
 
-        const nextState = parser.transformer(state);
-        if (nextState.isError) {
-            return nextState;
-        }
+            const nextState = parser.transformer(state);
+            if (nextState.isError) {
+                return nextState;
+            }
 
-        const assertionResult = assertion(nextState);
-        if (assertionResult !== null) {
-            return updateParseError(nextState, assertionResult);
-        } else {
-            return nextState;
-        }
-    });
+            const assertionResult = assertion(nextState);
+            if (assertionResult !== null) {
+                return updateParseError(nextState, assertionResult);
+            } else {
+                return nextState;
+            }
+        });
+    } else {
+        return new SymbolParser(function (state: ParseState<D, E>, continuation: Continuation<D, E>, parseStack: ParseStack<D, E>): void {
+            if (state.isError) {
+                continuation(state);
+            } else {
+                parser.transformer(state, function (state: ParseState<D, E>): void {
+                    if (state.isError) {
+                        continuation(state);
+                    } else {
+                        const assertionResult = assertion(state);
+                        if (assertionResult !== null) {
+                            continuation(updateParseError(state, assertionResult));
+                        } else {
+                            continuation(state);
+                        }
+                    }
+                }, parseStack);
+            }
+        });
+    }
 }
 
 /**
